@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Ejecutivo · FRMEC - Proyecto ABACO</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            slateDeep: '#1E293B',
+            neutralBg: '#F8FAFC',
+            amberExec: '#B45309',
+            emeraldExec: '#0F766E',
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    body {
+      background-color: #F8FAFC;
+      color: #1E293B;
+    }
+    .card-elevated {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      box-shadow: 0 4px 20px -2px rgba(30, 41, 59, 0.04);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .card-elevated:hover {
+      border-color: #CBD5E1;
+      box-shadow: 0 10px 25px -5px rgba(30, 41, 59, 0.08);
+    }
+    .filter-btn.active {
+      background-color: #1E293B;
+      color: #FFFFFF;
+      border-color: #1E293B;
+    }
+    .milestone-check:checked + label .check-box {
+      background-color: #0F766E;
+      border-color: #0F766E;
+      color: #FFFFFF;
+    }
+    .milestone-check:checked + label .milestone-text {
+      text-decoration: line-through;
+      color: #64748B;
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-slate-800 selection:text-white">
+
+  <!-- BARRA SUPERIOR / ENCABEZADO EJECUTIVO -->
+  <header class="bg-slateDeep text-white border-b border-slate-700/80 sticky top-0 z-30 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <!-- Título y Subtítulo -->
+        <div>
+          <div class="flex flex-wrap items-center gap-2.5 mb-1.5">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wider uppercase bg-amber-500/15 text-amber-300 border border-amber-500/30">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+              Gestión Operativa e Innovación
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-500/15 text-teal-300 border border-teal-500/30">
+              <i class="fa-regular fa-calendar-check"></i>
+              Lanzamiento Oficial: 01 de Diciembre
+            </span>
+          </div>
+          <h1 class="font-display text-2xl sm:text-3xl font-bold tracking-tight text-white">
+            Transformación Operativa y Mejora Continua · FRMEC
+          </h1>
+          <p class="text-slate-300 text-sm sm:text-base mt-1 max-w-3xl">
+            Digitalización de procesos, despliegue en tiempo real (FRMEC-ABACO) y hoja de ruta de automatización
+          </p>
+        </div>
+
+        <!-- Acción Directa a Plataforma -->
+        <div class="flex flex-wrap items-center gap-3 shrink-0">
+          <a href="https://darthvideche93.github.io/frmec-abaco/" target="_blank" rel="noopener noreferrer"
+             class="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-amberExec hover:bg-amber-800 text-white font-semibold text-sm shadow-sm transition-all duration-200 group">
+            <i class="fa-solid fa-up-right-from-square text-xs group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"></i>
+            <span>Abrir Plataforma FRMEC-ABACO</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Barra de Filtros Interactivos por Área / Fase -->
+      <div class="mt-5 pt-4 border-t border-slate-700/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <i class="fa-solid fa-filter mr-1.5"></i>Filtrar Vista Ejecutiva:
+        </span>
+        <div class="flex flex-wrap gap-2" id="filterBar">
+          <button type="button" data-filter="all" class="filter-btn active px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium border border-slate-600 text-slate-200 hover:bg-slate-700 transition-colors">
+            Todas las Áreas
+          </button>
+          <button type="button" data-filter="procesos" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium border border-slate-600 text-slate-200 hover:bg-slate-700 transition-colors">
+            Procesos Actuales
+          </button>
+          <button type="button" data-filter="plataforma" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium border border-slate-600 text-slate-200 hover:bg-slate-700 transition-colors">
+            Plataforma & Tablets
+          </button>
+          <button type="button" data-filter="innovacion" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium border border-slate-600 text-slate-200 hover:bg-slate-700 transition-colors">
+            Innovación & Automatización
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+    <!-- SECCIÓN 1: KPIs PRINCIPALES (5 TARJETAS SUPERIORES) -->
+    <section aria-label="Indicadores Clave de Desempeño">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+
+        <!-- KPI 1: Preparación Operativa Total con Gráfico Donut Interactivo -->
+        <div class="card-elevated rounded-2xl p-5 flex items-center justify-between lg:col-span-1 border-l-4 border-l-emeraldExec">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Preparación Total</p>
+            <div class="flex items-baseline gap-1.5 mt-1">
+              <span id="globalReadinessText" class="font-display text-3xl font-extrabold text-slateDeep">85%</span>
+              <span class="text-xs font-bold text-emeraldExec">Listo</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1.5 leading-snug">Avance consolidado hacia despliegue 01 Dic</p>
+          </div>
+          <div class="relative w-16 h-16 shrink-0">
+            <canvas id="readinessDonutChart"></canvas>
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <i class="fa-solid fa-gauge-high text-xs text-slate-400"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI 2: Back Office Técnico -->
+        <div class="card-elevated rounded-2xl p-5 flex flex-col justify-between">
+          <div class="flex items-start justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Back Office Técnico</span>
+            <span class="w-8 h-8 rounded-lg bg-teal-50 text-emeraldExec flex items-center justify-center">
+              <i class="fa-solid fa-compass-drafting text-sm"></i>
+            </span>
+          </div>
+          <div class="my-2">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-sm font-bold bg-teal-50 text-emeraldExec border border-teal-200">
+              <span class="w-2 h-2 rounded-full bg-emeraldExec"></span> Activo
+            </span>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Digitalización de planos CAD y revisión técnica centralizada.
+          </p>
+        </div>
+
+        <!-- KPI 3: Control de Coordinación -->
+        <div class="card-elevated rounded-2xl p-5 flex flex-col justify-between">
+          <div class="flex items-start justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Control Coordinación</span>
+            <span class="w-8 h-8 rounded-lg bg-slate-100 text-slateDeep flex items-center justify-center">
+              <i class="fa-solid fa-clipboard-check text-sm"></i>
+            </span>
+          </div>
+          <div class="my-2">
+            <span class="font-display text-2xl font-extrabold text-slateDeep">100%</span>
+            <span class="text-xs font-semibold text-slate-600 ml-1">Trazabilidad</span>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Registro auditado en programación y asignación de inspectores.
+          </p>
+        </div>
+
+        <!-- KPI 4: App Tiempo Real (FRMEC-ABACO) -->
+        <div class="card-elevated rounded-2xl p-5 flex flex-col justify-between">
+          <div class="flex items-start justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">App Tiempo Real</span>
+            <span class="w-8 h-8 rounded-lg bg-amber-50 text-amberExec flex items-center justify-center">
+              <i class="fa-solid fa-bolt text-sm"></i>
+            </span>
+          </div>
+          <div class="my-2">
+            <span class="font-display text-2xl font-extrabold text-amberExec">01 Dic</span>
+            <span class="text-xs font-semibold text-slate-600 ml-1">Arranque</span>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            FRMEC-ABACO configurada para llenado inmediato en sitio.
+          </p>
+        </div>
+
+        <!-- KPI 5: Formato Digital en Tablets -->
+        <div class="card-elevated rounded-2xl p-5 flex flex-col justify-between">
+          <div class="flex items-start justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Formato en Tablets</span>
+            <span class="w-8 h-8 rounded-lg bg-amber-50 text-amberExec flex items-center justify-center">
+              <i class="fa-solid fa-tablet-screen-button text-sm"></i>
+            </span>
+          </div>
+          <div class="my-2">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold bg-amber-50 text-amberExec border border-amber-200">
+              Listo / Por Iniciar
+            </span>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Parametrizado en equipos; pendiente marcha blanca operativa.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECCIÓN 2: ANALÍTICA VISUAL (2 GRÁFICOS INTERACTIVOS) -->
+    <section aria-label="Analítica de Madurez e Impacto Operativo" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Gráfico 1: Madurez por Componente Operativo -->
+      <div class="card-elevated rounded-2xl p-6">
+        <div class="flex items-start justify-between gap-2 mb-4">
+          <div>
+            <h2 class="font-display text-lg font-bold text-slateDeep">Madurez por Componente Operativo</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Estado de implementación y disponibilidad técnica por frente</p>
+          </div>
+          <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold">
+            Promedio: <span id="avgMaturityBadge">89%</span>
+          </span>
+        </div>
+        <div class="h-64 w-full">
+          <canvas id="maturityBarChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Gráfico 2: Impacto Proyectado en Tiempos Operativos -->
+      <div class="card-elevated rounded-2xl p-6">
+        <div class="flex items-start justify-between gap-2 mb-4">
+          <div>
+            <h2 class="font-display text-lg font-bold text-slateDeep">Impacto Proyectado en Tiempos Operativos</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Comparativa de ciclo promedio por inspección (Horas: Antes vs. FRMEC-ABACO)</p>
+          </div>
+          <span class="px-2.5 py-1 rounded-lg bg-teal-50 text-emeraldExec border border-teal-200 text-xs font-semibold">
+            -62% Tiempo Ciclo
+          </span>
+        </div>
+        <div class="h-64 w-full">
+          <canvas id="timeImpactChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 3: MÓDULOS ESTRUCTURADOS DE GESTIÓN (FILTRABLES SIN REDUNDANCIA) -->
+    <section aria-label="Módulos de Gestión y Transformación" class="space-y-6">
+
+      <!-- MÓDULO 1: PROCESOS ACTUALES & SOPORTE BACK OFFICE -->
+      <div class="module-card card-elevated rounded-2xl p-6 sm:p-7" data-category="procesos">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-slateDeep text-white flex items-center justify-center font-display font-bold text-sm">
+              01
+            </div>
+            <div>
+              <h3 class="font-display text-xl font-bold text-slateDeep">Procesos Actuales & Soporte Back Office</h3>
+              <p class="text-xs sm:text-sm text-slate-500">Estructura operativa vigente que libera carga administrativa en campo</p>
+            </div>
+          </div>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-teal-50 text-emeraldExec border border-teal-200 self-start sm:self-auto">
+            <i class="fa-solid fa-circle-check"></i> Operación Consolidada
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6">
+          <!-- Pilar 1 -->
+          <div class="rounded-xl bg-neutralBg p-5 border border-slate-200/80">
+            <div class="flex items-center gap-2.5 mb-2.5">
+              <i class="fa-solid fa-layer-group text-emeraldExec"></i>
+              <h4 class="font-display font-bold text-slateDeep text-base">Digitalización de Planos</h4>
+            </div>
+            <p class="text-sm text-slate-600 leading-relaxed">
+              Equipo de <strong>Back Office dedicado al levantamiento CAD</strong>, permitiendo que el inspector se enfoque al 100% en la evaluación técnica en sitio.
+            </p>
+          </div>
+
+          <!-- Pilar 2 -->
+          <div class="rounded-xl bg-neutralBg p-5 border border-slate-200/80">
+            <div class="flex items-center gap-2.5 mb-2.5">
+              <i class="fa-solid fa-route text-slateDeep"></i>
+              <h4 class="font-display font-bold text-slateDeep text-base">Control de Coordinación</h4>
+            </div>
+            <p class="text-sm text-slate-600 leading-relaxed">
+              <strong>Bitácora centralizada y auditada</strong> para asignación de inspectores, eliminando cruces de horarios y garantizando cobertura puntual por zona.
+            </p>
+          </div>
+
+          <!-- Pilar 3 -->
+          <div class="rounded-xl bg-neutralBg p-5 border border-slate-200/80">
+            <div class="flex items-center gap-2.5 mb-2.5">
+              <i class="fa-solid fa-shield-halved text-amberExec"></i>
+              <h4 class="font-display font-bold text-slateDeep text-base">Revisión de Informes</h4>
+            </div>
+            <p class="text-sm text-slate-600 leading-relaxed">
+              <strong>Filtro de calidad y doble validación técnica</strong> en Back Office previa a la entrega oficial, reduciendo observaciones y reprocesos.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- MÓDULO 2: PLATAFORMA TIEMPO REAL & TABLETS (ABACO) -->
+      <div class="module-card card-elevated rounded-2xl p-6 sm:p-7" data-category="plataforma">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amberExec text-white flex items-center justify-center font-display font-bold text-sm">
+              02
+            </div>
+            <div>
+              <h3 class="font-display text-xl font-bold text-slateDeep">Plataforma Tiempo Real & Formato en Tablets (ABACO)</h3>
+              <p class="text-xs sm:text-sm text-slate-500">Digitalización directa en punto de inspección y alineación a estándares del cliente</p>
+            </div>
+          </div>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amberExec border border-amber-200 self-start sm:self-auto">
+            <i class="fa-solid fa-rocket"></i> Despliegue 01 Diciembre
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <!-- Sub-bloque A: Web App FRMEC-ABACO -->
+          <div class="rounded-xl bg-neutralBg p-5 border border-slate-200/80 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <span class="inline-flex items-center gap-2 font-display font-bold text-slateDeep text-base">
+                  <i class="fa-solid fa-globe text-amberExec"></i>
+                  Web App FRMEC-ABACO
+                </span>
+                <span class="text-xs font-semibold px-2.5 py-0.5 rounded bg-slate-200/70 text-slate-700">Tiempo Real</span>
+              </div>
+              <ul class="space-y-2.5 text-sm text-slate-600">
+                <li class="flex items-start gap-2">
+                  <i class="fa-solid fa-check text-emeraldExec mt-1 text-xs"></i>
+                  <span><strong>Captura in situ:</strong> Llenado estructurado directamente durante la visita técnica.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fa-solid fa-check text-emeraldExec mt-1 text-xs"></i>
+                  <span><strong>Validación instantánea:</strong> Reglas de obligatoriedad que evitan campos incompletos.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fa-solid fa-check text-emeraldExec mt-1 text-xs"></i>
+                  <span><strong>Cero demoras de transcripción:</strong> Elimina el doble digitado posterior en oficina a partir del 1 de diciembre.</span>
+                </li>
+              </ul>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs">
+              <span class="text-slate-500 font-mono truncate">darthvideche93.github.io/frmec-abaco/</span>
+              <a href="https://darthvideche93.github.io/frmec-abaco/" target="_blank" rel="noopener noreferrer" class="font-semibold text-amberExec hover:underline shrink-0 ml-2">
+                Acceder <i class="fa-solid fa-arrow-right ml-0.5"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Sub-bloque B: Formato Digital en Tablets & Requerimientos Abaco -->
+          <div class="rounded-xl bg-neutralBg p-5 border border-slate-200/80 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <span class="inline-flex items-center gap-2 font-display font-bold text-slateDeep text-base">
+                  <i class="fa-solid fa-tablet-screen-button text-emeraldExec"></i>
+                  Formato Digital en Tablets
+                </span>
+                <span class="text-xs font-semibold px-2.5 py-0.5 rounded bg-teal-100/70 text-emeraldExec">Configurado</span>
+              </div>
+              <ul class="space-y-2.5 text-sm text-slate-600">
+                <li class="flex items-start gap-2">
+                  <i class="fa-solid fa-sliders text-slateDeep mt-1 text-xs"></i>
+                  <span><strong>Listo para marcha blanca:</strong> Entorno parametrizado en tablets, pendiente inicio de uso continuo.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fa-solid fa-bullseye text-amberExec mt-1 text-xs"></i>
+                  <span><strong>Ajustes requeridos por Abaco:</strong> Alineación de estructura de hallazgos, evidencias fotográficas y criterios técnicos exigidos en el reporte.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fa-solid fa-wand-magic-sparkles text-emeraldExec mt-1 text-xs"></i>
+                  <span><strong>Optimización clave:</strong> Incorporación de <em>modo offline</em> con sincronización automática y checklists dinámicos según tipo de activo.</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MÓDULO 3: INNOVACIÓN TECNOLÓGICA Y VALOR AGREGADO -->
+      <div class="module-card card-elevated rounded-2xl p-6 sm:p-7" data-category="innovacion">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emeraldExec text-white flex items-center justify-center font-display font-bold text-sm">
+              03
+            </div>
+            <div>
+              <h3 class="font-display text-xl font-bold text-slateDeep">Innovación Tecnológica y Soluciones de Valor Agregado</h3>
+              <p class="text-xs sm:text-sm text-slate-500">Funcionalidades propuestas para elevar calidad del dato, trazabilidad y diferenciación</p>
+            </div>
+          </div>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 self-start sm:self-auto">
+            <i class="fa-solid fa-microchip"></i> Propuesta de Evolución
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+          <div class="rounded-xl bg-neutralBg p-4 border border-slate-200/80 hover:border-emeraldExec/40 transition-colors">
+            <div class="w-9 h-9 rounded-lg bg-teal-50 text-emeraldExec flex items-center justify-center mb-3">
+              <i class="fa-solid fa-location-crosshairs"></i>
+            </div>
+            <h4 class="font-display font-bold text-sm text-slateDeep mb-1.5">Trazabilidad GPS Automática</h4>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Estampado automático de coordenadas y sello horario en cada fotografía y registro de visita en campo.
+            </p>
+          </div>
+
+          <div class="rounded-xl bg-neutralBg p-4 border border-slate-200/80 hover:border-emeraldExec/40 transition-colors">
+            <div class="w-9 h-9 rounded-lg bg-amber-50 text-amberExec flex items-center justify-center mb-3">
+              <i class="fa-solid fa-file-pdf"></i>
+            </div>
+            <h4 class="font-display font-bold text-sm text-slateDeep mb-1.5">PDF Estandarizado Instantáneo</h4>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Compilación automatizada del informe final bajo plantilla corporativa Abaco al cierre de la inspección.
+            </p>
+          </div>
+
+          <div class="rounded-xl bg-neutralBg p-4 border border-slate-200/80 hover:border-emeraldExec/40 transition-colors">
+            <div class="w-9 h-9 rounded-lg bg-slate-200/70 text-slateDeep flex items-center justify-center mb-3">
+              <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <h4 class="font-display font-bold text-sm text-slateDeep mb-1.5">Analítica Predictiva de Hallazgos</h4>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Detección de recurrencia de observaciones por zona, activo o inspector para acciones preventivas tempranas.
+            </p>
+          </div>
+
+          <div class="rounded-xl bg-neutralBg p-4 border border-slate-200/80 hover:border-emeraldExec/40 transition-colors">
+            <div class="w-9 h-9 rounded-lg bg-teal-50 text-emeraldExec flex items-center justify-center mb-3">
+              <i class="fa-solid fa-signature"></i>
+            </div>
+            <h4 class="font-display font-bold text-sm text-slateDeep mb-1.5">Firma Digital & Alertas al Cliente</h4>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Validación con firma en pantalla y notificaciones automáticas de estado y hallazgos críticos para Abaco.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- MÓDULO 4: HOJA DE RUTA Y SIMULADOR INTERACTIVO DE AUTOMATIZACIÓN -->
+      <div class="module-card card-elevated rounded-2xl p-6 sm:p-7" data-category="innovacion">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-slateDeep text-white flex items-center justify-center font-display font-bold text-sm">
+              04
+            </div>
+            <div>
+              <h3 class="font-display text-xl font-bold text-slateDeep">Hoja de Ruta y Simulador de Automatización</h3>
+              <p class="text-xs sm:text-sm text-slate-500">Marca los hitos completados para proyectar el 100% de Preparación Operativa</p>
+            </div>
+          </div>
+
+          <!-- Barra de Progreso Dinámica del Simulador -->
+          <div class="bg-neutralBg px-4 py-2.5 rounded-xl border border-slate-200 flex items-center gap-4 min-w-[260px]">
+            <div class="flex-1">
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span class="text-slate-600">Preparación Proyectada</span>
+                <span id="simulatorPercentLabel" class="text-emeraldExec font-bold">85%</span>
+              </div>
+              <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div id="simulatorProgressBar" class="h-full bg-emeraldExec transition-all duration-300" style="width: 85%;"></div>
+              </div>
+            </div>
+            <button type="button" id="resetSimulatorBtn" title="Restaurar estado actual (85%)"
+                    class="text-xs text-slate-500 hover:text-slateDeep px-2 py-1 rounded border border-slate-200 bg-white">
+              <i class="fa-solid fa-rotate-left"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3 Fases con Checklists Interactivos -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-6">
+
+          <!-- Fase 1 -->
+          <div class="rounded-xl bg-neutralBg p-5 border border-slate-200/80 flex flex-col">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-amberExec">Fase 1 · Noviembre</span>
+              <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-100/80 text-amberExec">En Ejecución</span>
+            </div>
+            <h4 class="font-display font-bold text-base text-slateDeep mb-3">Ajuste y Marcha Blanca</h4>
+            <div class="space-y-3 text-sm">
+              <div>
+                <input type="checkbox" id="hito1" class="milestone-check hidden" data-weight="3" />
+                <label for="hito1" class="flex items-start gap-2.5 cursor-pointer select-none">
+                  <span class="check-box w-4 h-4 mt-0.5 rounded border border-slate-300 bg-white flex items-center justify-center text-[10px] shrink-0 transition-colors">
+                    <i class="fa-solid fa-check"></i>
+                  </span>
+                  <span class="milestone-text text-slate-700 leading-snug">Incorporar mejoras de estructura solicitadas por Abaco</span>
+                </label>
+              </div>
+              <div>
+                <input type="checkbox" id="hito2" class="milestone-check hidden" data-weight="2" />
+                <label for="hito2" class="flex items-start gap-2.5 cursor-pointer select-none">
+                  <span class="check-box w-4 h-4 mt-0.5 rounded border border-slate-300 bg-white flex items-center justify-center text-[10px] shrink-0 transition-colors">
+                    <i class="fa-solid fa-check"></i>
+                  </span>
+                  <span class="milestone-text text-slate-700 leading-snug">Capacitar inspectores en uso operativo de tablets</span>
+                </label>
+              </div>
+              <div>
+                <input type="checkbox" id="hito3" class="milestone-check hidden" data-weight="2" checked />
+                <label for="hito3" class="flex items-start gap-2.5 cursor-pointer select-none">
+                  <span class="check-box w-4 h-4 mt-0.5 rounded border border-slate-300 bg-white flex items-center justify-center text-[10px] shrink-0 transition-colors">
+                    <i class="fa-solid fa-check"></i>
+                  </span>
+                  <span class="milestone-text text-slate-700 leading-snug">Validar flujo de revisión técnica con Back Office</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fase 2 -->
+          <div class="rounded-xl bg-neutralBg p-5 border border-slate-200/80 flex flex-col">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-emeraldExec">Fase 2 · Desde 01 Dic</span>
+              <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-teal-100/80 text-emeraldExec">Hito Clave</span>
+            </div>
+            <h4 class="font-display font-bold text-base text-slateDeep mb-3">Despliegue en Tiempo Real</h4>
+            <div class="space-y-3 text-sm">
+              <div>
+                <input type="checkbox" id="hito4" class="milestone-check hidden" data-weight="3" />
+                <label for="hito4" class="flex items-start gap-2.5 cursor-pointer select-none">
+                  <span class="check-box w-4 h-4 mt-0.5 rounded border border-slate-300 bg-white flex items-center justify-center text-[10px] shrink-0 transition-colors">
+                    <i class="fa-solid fa-check"></i>
+                  </span>
+                  <span class="milestone-text text-slate-700 leading-snug">Llenado 100% en plataforma FRMEC-ABACO en campo</span>
+                </label>
+              </div>
+              <div>
+                <input type="checkbox" id="hito5" class="milestone-check hidden" data-weight="2" />
+                <label for="hito5" class="flex items-start gap-2.5 cursor-pointer select-none">
+                  <span class="check-box w-4 h-4 mt-0.5 rounded border border-slate-300 bg-white flex items-center justify-center text-[10px] shrink-0 transition-colors">
+                    <i class="fa-solid fa-check"></i>
+                  </span>
+                  <span class="milestone-text text-slate-700 leading-snug">Auditar tiempos diarios de entrega y respuesta</span>
+                </label>
+              </div>
+              <div>
+                <input type="checkbox" id="hito6" class="milestone-check hidden" data-weight="2" />
+                <label for="hito6" class="flex items-start gap-2.5 cursor-pointer select-none">
+                  <span class="check-box w-4 h-4 mt-0.5 rounded border border-slate-300 bg-white flex items-center justify-center text-[10px] shrink-0 transition-colors">
+                    <i class="fa-solid fa-check"></i>
+                  </span>
+                  <span class="milestone-text text-slate-700 leading-snug">Eliminar reportes manuales paralelos y retranscripción</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fase 3 -->
+          <div class="rounded-xl bg-neutralBg p-5 border border-slate-200/80 flex flex-col">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-slateDeep">Fase 3 · Consolidación</span>
+              <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-200 text-slate-700">Escalamiento</span>
+            </div>
+            <h4 class="font-display font-bold text-base text-slateDeep mb-3">Automatización Administrativa</h4>
+            <div class="space-y-3 text-sm">
+              <div>
+                <input type="checkbox" id="hito7" class="milestone-check hidden" data-weight="1" />
+                <label for="hito7" class="flex items-start gap-2.5 cursor-pointer select-none">
+                  <span class="check-box w-4 h-4 mt-0.5 rounded border border-slate-300 bg-white flex items-center justify-center text-[10px] shrink-0 transition-colors">
+                    <i class="fa-solid fa-check"></i>
+                  </span>
+                  <span class="milestone-text text-slate-700 leading-snug">Integrar registros de coordinación con avance de planos CAD</span>
+                </label>
+              </div>
+              <div>
+                <input type="checkbox" id="hito8" class="milestone-check hidden" data-weight="1" />
+                <label for="hito8" class="flex items-start gap-2.5 cursor-pointer select-none">
+                  <span class="check-box w-4 h-4 mt-0.5 rounded border border-slate-300 bg-white flex items-center justify-center text-[10px] shrink-0 transition-colors">
+                    <i class="fa-solid fa-check"></i>
+                  </span>
+                  <span class="milestone-text text-slate-700 leading-snug">Automatizar liquidación y facturación por inspección aprobada</span>
+                </label>
+              </div>
+              <div>
+                <input type="checkbox" id="hito9" class="milestone-check hidden" data-weight="1" />
+                <label for="hito9" class="flex items-start gap-2.5 cursor-pointer select-none">
+                  <span class="check-box w-4 h-4 mt-0.5 rounded border border-slate-300 bg-white flex items-center justify-center text-[10px] shrink-0 transition-colors">
+                    <i class="fa-solid fa-check"></i>
+                  </span>
+                  <span class="milestone-text text-slate-700 leading-snug">Activar alertas preventivas automáticas de cumplimiento SLA</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- PIE DE PÁGINA EJECUTIVO -->
+  <footer class="border-t border-slate-200 bg-white mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+      <p><strong>FRMEC · Gestión Operativa e Innovación</strong> — Proyecto ABACO</p>
+      <p>Tablero Ejecutivo Interactivo · Despliegue Oficial: <strong class="text-slateDeep">01 de Diciembre</strong></p>
+    </div>
+  </footer>
+
+  <!-- SCRIPTS DE INTERACTIVIDAD Y GRÁFICOS -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. GRÁFICO DONUT KPI (Preparación Operativa Total: 85%)
+      const donutCtx = document.getElementById('readinessDonutChart').getContext('2d');
+      const readinessChart = new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Listo', 'Pendiente'],
+          datasets: [{
+            data: [85, 15],
+            backgroundColor: ['#0F766E', '#E2E8F0'],
+            borderWidth: 0,
+            hoverOffset: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '74%',
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.label}: ${ctx.parsed}%`
+              }
+            }
+          }
+        }
+      });
+
+      // 2. GRÁFICO DE BARRAS HORIZONTALES: MADUREZ POR COMPONENTE OPERATIVO
+      const maturityCtx = document.getElementById('maturityBarChart').getContext('2d');
+      const maturityChart = new Chart(maturityCtx, {
+        type: 'bar',
+        data: {
+          labels: [
+            'Planos y Revisión Back Office',
+            'Registro de Coordinación',
+            'Formato Digital en Tablets',
+            'Web App Tiempo Real (01 Dic)'
+          ],
+          datasets: [{
+            label: 'Nivel de Madurez (%)',
+            data: [100, 100, 80, 75],
+            backgroundColor: ['#0F766E', '#1E293B', '#B45309', '#D97706'],
+            borderRadius: 8,
+            barThickness: 22
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              min: 0,
+              max: 100,
+              grid: { color: '#F1F5F9' },
+              ticks: {
+                callback: (value) => value + '%',
+                font: { family: 'Inter', size: 11 },
+                color: '#64748B'
+              }
+            },
+            y: {
+              grid: { display: false },
+              ticks: {
+                font: { family: 'Inter', size: 12, weight: '600' },
+                color: '#1E293B'
+              }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#1E293B',
+              padding: 10,
+              callbacks: {
+                label: (ctx) => {
+                  const statusNotes = [
+                    '100% Operativo',
+                    '100% Auditado',
+                    '80% Configurado / Por iniciar',
+                    '75% Listo / Arranque 01 Dic'
+                  ];
+                  return ` ${statusNotes[ctx.dataIndex]}`;
+                }
+              }
+            }
+          }
+        }
+      });
+
+      // 3. GRÁFICO COMPARATIVO: IMPACTO PROYECTADO EN TIEMPOS OPERATIVOS
+      const timeCtx = document.getElementById('timeImpactChart').getContext('2d');
+      new Chart(timeCtx, {
+        type: 'bar',
+        data: {
+          labels: [
+            'Captura y Redacción',
+            'Revisión Back Office',
+            'Entrega Final a Abaco'
+          ],
+          datasets: [
+            {
+              label: 'Proceso Tradicional (Horas)',
+              data: [4.5, 2.5, 2.0],
+              backgroundColor: '#94A3B8',
+              borderRadius: 6,
+              barPercentage: 0.65
+            },
+            {
+              label: 'Con FRMEC-ABACO Tiempo Real (Horas)',
+              data: [1.5, 1.2, 0.7],
+              backgroundColor: '#0F766E',
+              borderRadius: 6,
+              barPercentage: 0.65
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: '#F1F5F9' },
+              ticks: {
+                callback: (v) => v + ' h',
+                font: { family: 'Inter', size: 11 },
+                color: '#64748B'
+              }
+            },
+            x: {
+              grid: { display: false },
+              ticks: {
+                font: { family: 'Inter', size: 12, weight: '600' },
+                color: '#1E293B'
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                usePointStyle: true,
+                pointStyle: 'circle',
+                padding: 16,
+                font: { family: 'Inter', size: 12 },
+                color: '#334155'
+              }
+            },
+            tooltip: {
+              backgroundColor: '#1E293B',
+              padding: 10,
+              callbacks: {
+                label: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y} horas`
+              }
+            }
+          }
+        }
+      });
+
+      // 4. FILTRO INTERACTIVO DE MÓDULOS POR ÁREA
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      const moduleCards = document.querySelectorAll('.module-card');
+
+      filterBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          filterBtns.forEach((b) => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          const selected = btn.getAttribute('data-filter');
+          moduleCards.forEach((card) => {
+            if (selected === 'all' || card.getAttribute('data-category') === selected) {
+              card.style.display = 'block';
+            } else {
+              card.style.display = 'none';
+            }
+          });
+        });
+      });
+
+      // 5. SIMULADOR INTERACTIVO DE PREPARACIÓN OPERATIVA (85% -> 100%)
+      const checkboxes = document.querySelectorAll('.milestone-check');
+      const globalReadinessText = document.getElementById('globalReadinessText');
+      const simulatorPercentLabel = document.getElementById('simulatorPercentLabel');
+      const simulatorProgressBar = document.getElementById('simulatorProgressBar');
+      const resetSimulatorBtn = document.getElementById('resetSimulatorBtn');
+
+      function updateReadinessSimulation() {
+        // Base inicial: 83% + 2% del hito3 ya marcado = 85%. Total de pesos restantes = 15%
+        let baseScore = 83;
+        checkboxes.forEach((cb) => {
+          if (cb.checked) {
+            baseScore += parseInt(cb.getAttribute('data-weight'), 10);
+          }
+        });
+        const finalScore = Math.min(100, baseScore);
+
+        globalReadinessText.textContent = `${finalScore}%`;
+        simulatorPercentLabel.textContent = `${finalScore}%`;
+        simulatorProgressBar.style.width = `${finalScore}%`;
+
+        // Actualizar gráfico Donut y barras dinámicamente
+        readinessChart.data.datasets[0].data = [finalScore, 100 - finalScore];
+        readinessChart.update();
+
+        // Actualizar barras de Tablets y Web App proporcionalmente si se marcan hitos
+        const hito1 = document.getElementById('hito1').checked;
+        const hito2 = document.getElementById('hito2').checked;
+        const hito4 = document.getElementById('hito4').checked;
+        const hito6 = document.getElementById('hito6').checked;
+
+        const tabletsScore = 80 + (hito1 ? 10 : 0) + (hito2 ? 10 : 0);
+        const webAppScore = 75 + (hito4 ? 15 : 0) + (hito6 ? 10 : 0);
+
+        maturityChart.data.datasets[0].data[2] = tabletsScore;
+        maturityChart.data.datasets[0].data[3] = webAppScore;
+        maturityChart.update();
+
+        const avg = Math.round((100 + 100 + tabletsScore + webAppScore) / 4);
+        document.getElementById('avgMaturityBadge').textContent = `${avg}%`;
+      }
+
+      checkboxes.forEach((cb) => {
+        cb.addEventListener('change', updateReadinessSimulation);
+      });
+
+      resetSimulatorBtn.addEventListener('click', () => {
+        checkboxes.forEach((cb) => {
+          cb.checked = cb.id === 'hito3';
+        });
+        updateReadinessSimulation();
+      });
+    });
+  </script>
+</body>
+</html>
